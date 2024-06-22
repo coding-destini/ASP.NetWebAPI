@@ -1,5 +1,6 @@
 ﻿using api.Data; // This includes the namespace api.Data so that classes and methods within that namespace can be used in this file.
 using api.Dtos.Stock;
+using api.Interfaces;
 using api.Mappers;
 using Azure;
 using Microsoft.AspNetCore.Http;
@@ -14,12 +15,14 @@ namespace api.Controller
     public class StockController : ControllerBase //StockController that inherits from ControllerBase, which provides basic functionality for handling HTTP requests.
     {
         private readonly ApplicationDBContext dbContext; // Declares a read-only field to hold the database context.
+        private readonly IStockRepository _stockRepo;
 
         // This is a constructor that takes an ApplicationDBContext parameter. The provided context is assigned to the dbContext field.
         // This is an example of dependency injection, where ApplicationDBContext is injected into the controller by the dependency injection framework.
-        public StockController(ApplicationDBContext context)
+        public StockController(ApplicationDBContext context, IStockRepository stockrepo)
         {
             dbContext = context;
+            _stockRepo = stockrepo;
         }
 
         //Get all stocks
@@ -31,7 +34,7 @@ namespace api.Controller
         //    IActionResult is a common return type for controller actions that can produce various types of HTTP responses, like Ok, NotFound, BadRequest, etc.
         public async Task<IActionResult> GetAll()
         {
-            var stocks = await dbContext.Stock.ToListAsync();
+            var stocks = await _stockRepo.GetAllAsync();
             var stockDTO = stocks.Select(s => s.ToStockDto()); //This retrieves all stock records from the database as a list.
             return Ok(stocks);
         }
@@ -40,7 +43,7 @@ namespace api.Controller
         [HttpGet("{id}")] //This attribute specifies that this action responds to HTTP GET requests with a URL parameter (id).
         public async Task<IActionResult> GetById([FromRoute] int id)
         { //This method takes an id parameter from the route and returns an IActionResult. [FromRoute]int id: This is model binding, where the value of id in the URL is automatically bound to the id parameter of the method.
-            var stock = await dbContext.Stock.FindAsync(id);
+            var stock = await _stockRepo.GetByIdAsync(id);
             if (stock == null)
             {
                 return NotFound();
@@ -58,28 +61,25 @@ namespace api.Controller
         public async Task<IActionResult> Create([FromBody] CreateStockRequestDto stockDto)
         {
             var stockModel = stockDto.ToStockfromCreateDto(); //This line converts the CreateStockRequestDto (stockDto) into a Stock entity (stockModel) using the ToStockfromCreateDto mapping method.
-            await dbContext.Stock.AddAsync(stockModel);
-            await dbContext.SaveChangesAsync();
-            //
-            return CreatedAtAction(nameof(GetById), new { id = stockModel.Id }, stockModel.ToStockDto());
+         
+            await _stockRepo.CreateAsync(stockModel); 
+
+            return CreatedAtAction(nameof(GetById),
+                new { id = stockModel.Id }, 
+                stockModel.ToStockDto()); // The CreatedAtAction method in ASP.NET Core creates a Location header pointing to the URL of
+                                          // the newly created resource. This method requires the action name (GetById in this case) and the route
+                                          // values (e.g., id) to build the URL. It uses the route data to generate the URL dynamically.  
+                                          //Ex : In response header we will get this : location: https://localhost:7182/api/stock/id , by this we can directly access our stock  
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDto UpdateStockDto)
         {
-            var stockModel = await dbContext.Stock.FirstOrDefaultAsync(s => s.Id == id);
+            var stockModel = await _stockRepo.UpdateByIdAsync(id,UpdateStockDto);
             if (stockModel == null)
             {
                 return NotFound();
             }
-            stockModel.Symbol = UpdateStockDto.Symbol;
-            stockModel.CompanyName = UpdateStockDto.CompanyName;
-            stockModel.Purchase = UpdateStockDto.Purchase;
-            stockModel.LastDiv = UpdateStockDto.LastDiv;
-            stockModel.Industry = UpdateStockDto.Industry;
-            stockModel.MarketCap = UpdateStockDto.MarketCap;
-
-            await dbContext.SaveChangesAsync();
 
             return Ok(new
             {
@@ -92,13 +92,11 @@ namespace api.Controller
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
 
-            var stockModel = await dbContext.Stock.FirstOrDefaultAsync(d => d.Id == id);
+            var stockModel = await _stockRepo.DeleteByIdAsync(id);
             if (stockModel == null)
             {
                 return NotFound();
             }
-            dbContext.Stock.Remove(stockModel);
-            await dbContext.SaveChangesAsync();
             return Ok(new
             {
                 message = "Stock Deleted Successfully 😊"
