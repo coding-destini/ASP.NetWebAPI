@@ -36,7 +36,7 @@ namespace api.Controller
         {
             var stocks = await _stockRepo.GetAllAsync();
             var stockDTO = stocks.Select(s => s.ToStockDto()); //This retrieves all stock records from the database as a list.
-            return Ok(stocks);
+            return Ok(stockDTO);
         }
 
         //Get stock by Id
