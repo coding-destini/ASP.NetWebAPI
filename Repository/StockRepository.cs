@@ -36,13 +36,12 @@ namespace api.Repository
 
         public Task<List<Stock>> GetAllAsync()
         {
-            return _dbContext.Stock.ToListAsync();
+            return _dbContext.Stock.Include(c=>c.Comments).ToListAsync();
         }
 
         public async Task<Stock?> GetByIdAsync(int id)
         {
-           return await _dbContext.Stock.FindAsync(id);
-        
+           return await _dbContext.Stock.Include(c=>c.Comments).FirstOrDefaultAsync(s=>s.Id==id);
 
         }
 
