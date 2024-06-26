@@ -40,7 +40,7 @@ namespace api.Controller
         }
 
         //Get stock by Id
-        [HttpGet("{id}")] //This attribute specifies that this action responds to HTTP GET requests with a URL parameter (id).
+        [HttpGet("{id:int}")] //This attribute specifies that this action responds to HTTP GET requests with a URL parameter (id).
         public async Task<IActionResult> GetById([FromRoute] int id)
         { //This method takes an id parameter from the route and returns an IActionResult. [FromRoute]int id: This is model binding, where the value of id in the URL is automatically bound to the id parameter of the method.
             var stock = await _stockRepo.GetByIdAsync(id);
@@ -60,6 +60,10 @@ namespace api.Controller
         //attribute indicates that the stockDto should be deserialized from the JSON body of the HTTP request. 
         public async Task<IActionResult> Create([FromBody] CreateStockRequestDto stockDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var stockModel = stockDto.ToStockfromCreateDto(); //This line converts the CreateStockRequestDto (stockDto) into a Stock entity (stockModel) using the ToStockfromCreateDto mapping method.
          
             await _stockRepo.CreateAsync(stockModel); 
@@ -72,9 +76,13 @@ namespace api.Controller
                                           //Ex : In response header we will get this : location: https://localhost:7182/api/stock/id , by this we can directly access our stock  
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateStockRequestDto UpdateStockDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var stockModel = await _stockRepo.UpdateByIdAsync(id,UpdateStockDto);
             if (stockModel == null)
             {
@@ -88,7 +96,7 @@ namespace api.Controller
             });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
 

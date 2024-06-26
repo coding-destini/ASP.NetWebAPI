@@ -38,10 +38,15 @@ namespace api.Controller
             return Ok(comment.ToCommentDto());
         }
 
-        [HttpPost("{Stockid}")]
+        [HttpPost("{Stockid:int}")]
         public async Task<IActionResult> Create([FromRoute] int Stockid, CreateCommentDto commentDto)
         {
-            if(!await _stockRepository.StockExist(Stockid))
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (!await _stockRepository.StockExist(Stockid))
             {
                 return BadRequest("Stock does not exist");
             }
@@ -52,9 +57,14 @@ namespace api.Controller
         }
 
         [HttpPut]
-        [Route("{id}")]
+        [Route("{id:int}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentDto updateDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             //cause updateAsync which is excpecting a comment model so we can't send DTO , so we need a maaper for this
             var comment = await _commentRepository.UpdateAsync(id, updateDto.ToCommentFromUpdate());
             if(comment == null)
@@ -68,7 +78,7 @@ namespace api.Controller
             });
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var comment = _commentRepository.DeleteAsync(id);
