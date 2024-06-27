@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TestProject.Data;
 using TestProject.Dtos;
+using TestProject.Interfaces;
 using TestProject.Mappers;
 using TestProject.Models;
 
@@ -10,18 +11,17 @@ namespace TestProject.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        public readonly ApplicationDBContext _dbContext;
-        public UserController(ApplicationDBContext dBContext)
+        public readonly IUserRepository _userRepository;
+        public UserController(IUserRepository userRepo)
         {
-            _dbContext = dBContext;
+            _userRepository = userRepo;
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto userdto)
         {
             var user = userdto.ToCreateFromUserDto();
-            await _dbContext.Users.AddAsync(user);
-            await _dbContext.SaveChangesAsync();
+            await _userRepository.CreateAsync(user);
             return Ok(
                 new
                 {
