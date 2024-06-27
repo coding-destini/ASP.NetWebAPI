@@ -1,0 +1,19 @@
+# Visual Studio specific files
+.vs/
+*.vscode/
+
+# Build directories
+bin/
+obj/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+
+# Auto-generated files
+*.log
+*.tlog
+
+# Other
+*.ide
