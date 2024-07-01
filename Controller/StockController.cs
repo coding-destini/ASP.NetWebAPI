@@ -1,5 +1,6 @@
 ﻿using api.Data; // This includes the namespace api.Data so that classes and methods within that namespace can be used in this file.
 using api.Dtos.Stock;
+using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using Azure;
@@ -32,9 +33,9 @@ namespace api.Controller
 
         //Task<IActionResult>: Indicates that the asynchronous method will eventually return an IActionResult. 
         //    IActionResult is a common return type for controller actions that can produce various types of HTTP responses, like Ok, NotFound, BadRequest, etc.
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] QueryObject query)
         {
-            var stocks = await _stockRepo.GetAllAsync();
+            var stocks = await _stockRepo.GetAllAsync(query);
             var stockDTO = stocks.Select(s => s.ToStockDto()); //This retrieves all stock records from the database as a list.
             return Ok(stockDTO);
         }
