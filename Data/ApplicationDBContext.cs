@@ -7,10 +7,11 @@ using System.Data.SqlTypes;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace api.Data
 {
-    public class ApplicationDBContext : DbContext
+    public class ApplicationDBContext : IdentityDbContext<AppUser>
     //a DbContext is the primary class that interacts with the database.It manages the entity objects during runtime,
     //which includes retrieving them from the database, keeping track of changes, and persisting data back to the database.
     {
