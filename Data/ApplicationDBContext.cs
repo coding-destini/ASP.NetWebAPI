@@ -8,6 +8,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace api.Data
 {
@@ -29,7 +30,28 @@ namespace api.Data
         public DbSet<Comment> Comment { get;set;}
 
         //By defining a DbSet<T>, you are telling Entity Framework Core that you want to be able to query and save instances of Stock and Comment.
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            //Calling the base class's OnModelCreating method
+            base.OnModelCreating(builder);
 
+            //Creating a list of roles to seed the database with
+            List<IdentityRole> roles = new List<IdentityRole>
+            {
+                new IdentityRole
+                {
+                    Name = "Admin",
+                    NormalizedName = "ADMIN"
+                },
+                new IdentityRole
+                {
+                    Name = "User",
+                    NormalizedName = "USER"
+                }
+
+            };
+            builder.Entity<IdentityRole>().HasData(roles);
+        }
 
     }
 }
